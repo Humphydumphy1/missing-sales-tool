@@ -4,82 +4,175 @@
   <meta charset="UTF-8" />
   <title>Frecno DELETE Generator</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+    :root {
+      --primary-color: #5c6bc0;
+      --accent-color: #f8f8f8;
+      --border-color: #ccc;
+      --highlight: #fce4ec;
+      --dark-bg: #2c3e50;
+      --light-text: #fff;
     }
-  
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: var(--dark-bg);
+      color: var(--light-text);
+      padding: 15px 20px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+
     label {
       display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
-  
-    button {
-      padding: 10px 20px;
-      margin-right: 10px;
-      margin-top: 10px;
-    }
-  
-    pre {
-      background-color: #d1a6a6;
-      padding: 20px;
-      margin: 10px 0;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: monospace;
-    }
-  
-    #deleteRecnos {
+
+    textarea {
       width: 100%;
       height: 150px;
-      padding: 10px;
-      margin: 15px 0;
+      padding: 12px;
+      background-color: var(--accent-color);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
       font-family: monospace;
-      background-color: #fff8dc;
-      border: 2px solid #d1a6a6;
-      border-radius: 6px;
       font-size: 14px;
       resize: vertical;
+      transition: border-color 0.2s;
     }
-  </style>  
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    .button-group {
+      margin: 15px 0;
+    }
+
+    button {
+      padding: 10px 18px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #3f51b5;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .output-container {
+      margin-top: 20px;
+    }
+
+    .toggle-output {
+      background-color: #999;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    pre {
+      background-color: var(--highlight);
+      border-left: 4px solid var(--primary-color);
+      padding: 20px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .button-group {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<h2>DELETE Frecno Generator</h2>
+  <header>🗑️ DELETE Frecno Generator</header>
 
-<label for="deleteRecnos">ari e input frecno na imo ipabilin aron di madelete (one per line; e by column pag butang sa frecno dong):</label>
-<textarea id="deleteRecnos" placeholder="e.g.&#10;122086&#10;122088"></textarea>
+  <main>
+    <label for="deleteRecnos">
+      Ari e input frecno na imo ipabilin aron di madelete<br>
+      (one per line; e by column pag butang sa frecno dong):
+    </label>
 
-<button onclick="generateDeleteSQL()">Generate DELETE SQL script</script></button>
-<button onclick="clearDeleteForm()">Clear</button>
+    <textarea id="deleteRecnos" placeholder="e.g.&#10;122086&#10;122088"></textarea>
 
-<h3>Generated SQL DELETE Script:</h3>
-<button onclick="copyToClipboard()">Copy to Clipboard</button>
-<pre id="deleteOutput"></pre>
+    <div class="button-group">
+      <button onclick="generateDeleteSQL()">Generate DELETE SQL</button>
+      <button onclick="clearDeleteForm()">Clear</button>
+      <button onclick="copyToClipboard()">Copy to Clipboard</button>
+      <button class="toggle-output" onclick="toggleOutput()">Show/Hide Output</button>
+    </div>
 
-<script>
-  function generateDeleteSQL() {
-    const raw = document.getElementById("deleteRecnos").value.trim();
-    if (!raw) {
-      alert("Please input frecno values first.");
-      return;
-    }
+    <div class="output-container">
+      <pre id="deleteOutput"></pre>
+    </div>
+  </main>
 
-    const lines = raw
-      .split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(val => val !== '')
-      .map(val => `"${val}"`);
+  <script>
+    function generateDeleteSQL() {
+      const raw = document.getElementById("deleteRecnos").value.trim();
+      const outputBox = document.getElementById("deleteOutput");
 
-    const grouped = [];
-    for (let i = 0; i < lines.length; i += 8) {
-      grouped.push(lines.slice(i, i + 8).join(", "));
-    }
+      if (!raw) {
+        alert("Please input frecno values first.");
+        return;
+      }
 
-    const formatted = grouped.join(",\n    ");
+      const values = raw
+        .split(/\r?\n/)
+        .map(val => val.trim())
+        .filter(val => val)
+        .map(val => `"${val}"`);
 
-    const sql = 
+      const grouped = [];
+      for (let i = 0; i < values.length; i += 8) {
+        grouped.push(values.slice(i, i + 8).join(", "));
+      }
+
+      const formatted = grouped.join(",\n    ");
+
+      const sql =
 `DELETE FROM pos_sale 
 WHERE frecno NOT IN (
     ${formatted}
@@ -95,25 +188,33 @@ WHERE frecno NOT IN (
     ${formatted}
 );`;
 
-    document.getElementById("deleteOutput").textContent = sql;
-  }
-
-  function clearDeleteForm() {
-    document.getElementById("deleteRecnos").value = '';
-    document.getElementById("deleteOutput").textContent = '';
-  }
-
-  function copyToClipboard() {
-    const output = document.getElementById("deleteOutput").textContent;
-    if (!output) {
-      alert("Nothing to copy yet! Aysig kiat ug nawng ara");
-      return;
+      outputBox.textContent = sql;
+      outputBox.style.display = "block";
     }
-    navigator.clipboard.writeText(output).then(() => {
-      alert("Copied to clipboard! Trabaho tarong tapolan");
-    });
-  }
-</script>
+
+    function clearDeleteForm() {
+      document.getElementById("deleteRecnos").value = '';
+      const outputBox = document.getElementById("deleteOutput");
+      outputBox.textContent = '';
+      outputBox.style.display = 'none';
+    }
+
+    function copyToClipboard() {
+      const output = document.getElementById("deleteOutput").textContent;
+      if (!output) {
+        alert("Nothing to copy yet! Aysig kiat ug nawng ara");
+        return;
+      }
+      navigator.clipboard.writeText(output).then(() => {
+        alert("Copied to clipboard! Trabaho tarong tapolan");
+      });
+    }
+
+    function toggleOutput() {
+      const output = document.getElementById("deleteOutput");
+      output.style.display = output.style.display === "block" ? "none" : "block";
+    }
+  </script>
 
 </body>
 </html>

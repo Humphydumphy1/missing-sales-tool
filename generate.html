@@ -2,129 +2,152 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>NEW FRECNO GENERATOR</title>
+  <title>New FRECNO Generator</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f9fc;
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: auto;
+      color: #333;
+    }
+
+    h2, h3 {
+      text-align: center;
+      color: #1e90ff;
+      margin-bottom: 30px;
     }
 
     label {
       display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
+      font-weight: 600;
+      margin: 20px 0 6px;
+    }
+
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 120px;
+      resize: vertical;
     }
 
     button {
       padding: 10px 20px;
-      margin-right: 10px;
-      margin-top: 10px;
+      margin: 10px 5px 20px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
     }
+
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.98); }
+
+    .primary { background-color: #1e90ff; color: white; }
+    .danger { background-color: #ff4d4d; color: white; }
+    .secondary { background-color: #ffa500; color: white; }
+    .copy { background-color: #4caf50; color: white; margin-bottom: 20px; }
 
     pre {
-      background-color: #d1a6a6;
+      background-color: #fff;
       padding: 20px;
-      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
       white-space: pre-wrap;
       word-wrap: break-word;
-    }
-
-    #startRecno {
-      width: 50%;
-      padding: 12px;
-      margin: 10px 0;
-      font-family: monospace;
-      background-color: #f0f8ff;
-      border: 2px solid #007acc;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-
-    #oldRecnos {
-      width: 100%;
-      height: 150px;
-      padding: 10px;
-      margin: 15px 0;
-      font-family: monospace;
-      background-color: #fff8dc;
-      border: 2px solid #d1a6a6;
-      border-radius: 6px;
-      font-size: 14px;
-      resize: vertical;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
 
-<h2>NEW FRECNO GENERATOR</h2>
+  <h2>🔧 New FRECNO Generator</h2>
 
-<label for="startRecno">ari e input ang latest frecno (THEN):</label>
-<input type="number" id="startRecno" value="1000" />
+  <label for="startRecno">Latest FRECNO (start point):</label>
+  <input type="number" id="startRecno" value=""/>
 
-<label for="oldRecnos">e paste ari ang old recno (one per line; e by column pag butang sa frecno dong):</label>
-<textarea id="oldRecnos" placeholder="e.g.&#10;193742&#10;193743&#10;193744"></textarea>
+  <label for="oldRecnos">Paste old FRECNO values (one per line):</label>
+  <textarea id="oldRecnos" placeholder="e.g.&#10;193742&#10;193743&#10;193744"></textarea>
 
-<button onclick="generateSQL()">Generate SQL script</button>
-<button onclick="clearForm()">Clear</button>
-<button onclick="generateFtransmitReset()">generate the ftransmit=&quot;0000&quot; script</button>
+  <div>
+    <button class="primary" onclick="generateSQL()">Generate SQL</button>
+    <button class="danger" onclick="clearForm()">Clear</button>
+    <button class="secondary" onclick="generateFtransmitReset()">Ftransmit Reset Script</button>
+  </div>
 
-<h3>generated SQL with new latest recno:</h3>
-<button onclick="copySQL()">Copy to Clipboard</button>
-<pre id="outputSQL"></pre>
+  <h3>📝 Generated SQL:</h3>
+  <button class="copy" onclick="copySQL()">Copy to Clipboard</button>
 
-<script>
-  function generateSQL() {
-    const startVal = parseInt(document.getElementById('startRecno').value);
-    const oldText = document.getElementById('oldRecnos').value.trim();
-    const oldLines = oldText.split(/\r?\n/).map(line => line.trim()).filter(line => line);
+  <pre id="outputSQL">/* Output will appear here after generation */</pre>
 
-    const tables = ['pos_sale', 'pos_sale_payment', 'pos_sale_product'];
-    let currentNew = startVal;
+  <script>
+    function generateSQL() {
+      const startVal = parseInt(document.getElementById('startRecno').value);
+      const oldText = document.getElementById('oldRecnos').value.trim();
 
-    const mappings = oldLines.map(oldVal => {
-      const pair = { oldVal, newVal: currentNew };
-      currentNew++;
-      return pair;
-    });
+      if (!startVal || !oldText) {
+        alert("Please enter both the latest FRECNO and at least one old FRECNO.");
+        return;
+      }
 
-    const fullSQL = tables.map(table => {
-      let sql = `UPDATE ${table}\nSET frecno = \n  CASE frecno\n`;
-      mappings.forEach(({ oldVal, newVal }) => {
-        sql += `    WHEN '${oldVal}' THEN '${newVal}'\n`;
-      }); 
-      sql += `    ELSE frecno\n  END;`;
-      return sql;
-    }).join('\n\n');
+      const oldLines = oldText.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      const tables = ['pos_sale', 'pos_sale_payment', 'pos_sale_product'];
+      let currentNew = startVal;
 
-    document.getElementById('outputSQL').textContent = fullSQL;
-  }
+      const mappings = oldLines.map(oldVal => ({
+        oldVal,
+        newVal: currentNew++
+      }));
 
-  function clearForm() {
-    document.getElementById('startRecno').value = 1000;
-    document.getElementById('oldRecnos').value = '';
-    document.getElementById('outputSQL').textContent = '';
-  }
+      const fullSQL = tables.map(table => {
+        let sql = `UPDATE ${table}\nSET frecno = \n  CASE frecno\n`;
+        mappings.forEach(({ oldVal, newVal }) => {
+          sql += `    WHEN '${oldVal}' THEN '${newVal}'\n`;
+        });
+        sql += `    ELSE frecno\n  END;`;
+        return sql;
+      }).join('\n\n');
 
-  function copySQL() {
-    const output = document.getElementById('outputSQL').textContent;
-    if (!output) {
-      alert('Nothing to copy! Please generate SQL first. Kiat lang nawng nimo da!');
-      return;
+      document.getElementById('outputSQL').textContent = fullSQL;
     }
-    navigator.clipboard.writeText(output).then(() => {
-      alert('SQL script copied to clipboard! tinapolan style ba!');
-    }).catch(() => {
-      alert('Failed to copy. Please try manually.');
-    });
-  }
 
-  function generateFtransmitReset() {
-    const sql = `update pos_sale set ftransmit="0000";\n` +
-                `update pos_sale_payment set ftransmit="0000";\n` +
-                `update pos_sale_product set ftransmit="0000";`;
-    document.getElementById('outputSQL').textContent = sql;
-  }
-</script>
+    function generateFtransmitReset() {
+      const sql = `UPDATE pos_sale SET ftransmit='0000';\n` +
+                  `UPDATE pos_sale_payment SET ftransmit='0000';\n` +
+                  `UPDATE pos_sale_product SET ftransmit='0000';`;
+      document.getElementById('outputSQL').textContent = sql;
+    }
+
+    function clearForm() {
+      document.getElementById('startRecno').value = '';
+      document.getElementById('oldRecnos').value = '';
+      document.getElementById('outputSQL').textContent = '/* Output will appear here after generation */';
+    }
+
+    function copySQL() {
+      const output = document.getElementById('outputSQL').textContent;
+      if (!output || output.includes("Output will appear")) {
+        alert('Nothing to copy. Please generate SQL first.');
+        return;
+      }
+
+      navigator.clipboard.writeText(output)
+        .then(() => alert('✅ SQL script copied to clipboard!'))
+        .catch(() => alert('❌ Copy failed. Try manually.'));
+    }
+  </script>
 
 </body>
 </html>

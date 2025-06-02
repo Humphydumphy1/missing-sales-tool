@@ -2,110 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Download Flashlogs Batch Files</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashlogs Batch Generator</title>
   <style>
+    :root {
+      --primary: #007acc;
+      --primary-dark: #005f99;
+      --bg-light: #f1f3f5;
+      --text-dark: #222;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
       text-align: center;
     }
+
+    main {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
     h2 {
-      color: #333;
+      margin-bottom: 10px;
     }
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      margin: 15px;
-      border: none;
-      border-radius: 6px;
-      background-color: #007acc;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #005f99;
-    }
+
     p {
-      max-width: 600px;
-      margin: 20px auto;
       font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 24px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h2>Generate Flashlogs Batch Files by Bazel</h2>
-  <p>This program automatically gets the iPortfolio log and XML file of the POS.<br/>
-    <br><br/>
-  - Copy the downloaded .bat file to the client’s end and run it (double-click or run as admin).<br/>
-  - Check <code>C:\poscopy</code> for the saved files after running.</p>
+  <header>
+    Flashlogs Batch Generator
+  </header>
 
-  <button onclick="generateBTQ()">Download Flashlogs_BTQ.bat</button>
-  <button onclick="generateFB()">Download Flashlogs_FB.bat [wala pa nahuman]</button>
+  <main>
+    <h2>Generate Flashlogs Batch Files (by Bazel)</h2>
+    <p>This utility generates batch scripts for collecting flashlogs and iPortfolio files from the client’s POS.<br><br>
+      📁 After running the `.bat` file, check <code>C:\poscopy</code> for collected logs.</p>
+
+    <button onclick="generateBTQ()">📥 Download Flashlogs_BTQ.bat</button>
+    <button onclick="generateFB()">📥 Download Flashlogs_FB.bat</button>
+  </main>
 
   <script>
     function generateBTQ() {
-      const content = `REM **** Saves as Flashlogs BTQ.bat
-
-REM **** WebPOS Batch file
-
-REM **** Copy flashlogs and local db
-
+      const content = `REM **** Flashlogs BTQ
 set _m_user_appdata=%appdata%
-
 set _m_outputdir=C:\\poscopy
-
 set _m_datetime=%date%_%time%
-
 set _m_datetime=%_m_datetime: =_%
-
 set _m_datetime=%_m_datetime::=%
-
 set _m_datetime=%_m_datetime:/=_% 
-
-set _m_datetime=%_m_datetime:.=_%
-
-
+set _m_datetime=%_m_datetime:.=_% 
 if exist %_m_outputdir% (echo "Exists") else (mkdir %_m_outputdir%)
-
 copy /b "%_m_user_appdata%\\Macromedia\\Flash Player\\Logs\\flashlog.txt" %_m_outputdir%\\WPOS_%_m_datetime%.txt
-
 copy /b "%_m_user_appdata%\\ipbtq.74249FF9CB321F1D45F6EA93A89630D1BE111EF2.1\\Local Store\\iportfolio.log" %_m_outputdir%\\iportfolio_%_m_datetime%.log
-
 copy /b "%_m_user_appdata%\\ipbtq.74249FF9CB321F1D45F6EA93A89630D1BE111EF2.1\\Local Store\\iportfolio.xml" %_m_outputdir%\\iportfolio_%_m_datetime%.xml`;
       downloadFile(content, 'Flashlogs_BTQ.bat');
     }
 
     function generateFB() {
-      const content = `REM **** Saves as Flashlogs FB.bat
-
-REM **** WebPOS Batch file
-
-REM **** Copy flashlogs and local db
-
+      const content = `REM **** Flashlogs FB
 set _m_user_appdata=%appdata%
-
 set _m_outputdir=C:\\poscopy
-
 set _m_datetime=%date%_%time%
-
 set _m_datetime=%_m_datetime: =_%
-
 set _m_datetime=%_m_datetime::=%
-
 set _m_datetime=%_m_datetime:/=_% 
-
-set _m_datetime=%_m_datetime:.=_%
-
-
+set _m_datetime=%_m_datetime:.=_% 
 if exist %_m_outputdir% (echo "Exists") else (mkdir %_m_outputdir%)
-
 copy /b "%_m_user_appdata%\\Macromedia\\Flash Player\\Logs\\flashlog.txt" %_m_outputdir%\\WPOS_%_m_datetime%.txt
-
 copy /b "%_m_user_appdata%\\ipfb.74249FF9CB321F1D45F6EA93A89630D1BE111EF2.1\\Local Store\\iportfolio.log" %_m_outputdir%\\iportfolio_%_m_datetime%.log
-
 copy /b "%_m_user_appdata%\\ipfb.74249FF9CB321F1D45F6EA93A89630D1BE111EF2.1\\Local Store\\iportfolio.xml" %_m_outputdir%\\iportfolio_%_m_datetime%.xml`;
       downloadFile(content, 'Flashlogs_FB.bat');
     }
