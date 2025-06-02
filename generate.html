@@ -91,7 +91,7 @@
       let sql = `UPDATE ${table}\nSET frecno = \n  CASE frecno\n`;
       mappings.forEach(({ oldVal, newVal }) => {
         sql += `    WHEN '${oldVal}' THEN '${newVal}'\n`;
-      });
+      }); 
       sql += `    ELSE frecno\n  END;`;
       return sql;
     }).join('\n\n');
