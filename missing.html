@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Missing Receipt Finder</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 40px;
+      text-align: center;
+      background-color: #f0f4f8;
+      color: #333;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    input[type="file"] {
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    button#clearBtn {
+      background-color: #e74c3c;
+    }
+
+    button#clearBtn:hover {
+      background-color: #c0392b;
+    }
+
+    #output {
+      margin-top: 30px;
+      font-size: 17px;
+      white-space: pre;
+      color: #2c3e50;
+      max-width: 850px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+      border: 1px solid #ccc;
+      padding: 25px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>🧾 Missing Receipt Finder</h1>
+  <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple />
+  <div>
+    <button onclick="processFiles()">Check Missing</button>
+    <button id="downloadBtn" style="display:none;">Download Result as .txt</button>
+    <button id="clearBtn" onclick="clearOutput()">Clear Output</button>
+  </div>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    function processFiles() {
+      const files = document.getElementById("fileInput").files;
+      const output = document.getElementById("output");
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      if (!files.length) {
+        alert("Please select at least one file.");
+        return;
+      }
+
+      output.textContent = "⏳ Processing files...\n";
+      downloadBtn.style.display = "none";
+
+      let allMissing = {};
+      let processedCount = 0;
+
+      for (let file of files) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+          let receiptCol = -1;
+          let dateCol = -1;
+          let headerRowIndex = -1;
+
+          for (let i = 0; i < json.length; i++) {
+            const row = json[i];
+            if (!row) continue;
+
+            row.forEach((cell, colIndex) => {
+              if (typeof cell === 'string' && cell.toLowerCase().includes("receipt")) {
+                receiptCol = colIndex;
+                headerRowIndex = i;
+              }
+              if (typeof cell === 'string' && cell.toLowerCase().includes("date")) {
+                dateCol = colIndex;
+              }
+            });
+
+            if (receiptCol !== -1 && dateCol !== -1) break;
+          }
+
+          if (receiptCol === -1 || dateCol === -1) {
+            output.innerHTML += `❌ Could not find 'Receipt#' or 'Date' in ${file.name}\n`;
+            processedCount++;
+            if (processedCount === files.length) finalizeOutput();
+            return;
+          }
+
+          const rows = json.slice(headerRowIndex + 1);
+          const groupedByDate = {};
+
+          for (let row of rows) {
+            const receipt = Number(row[receiptCol]);
+            const date = row[dateCol];
+
+            if (!date || isNaN(receipt)) continue;
+            if (!groupedByDate[date]) groupedByDate[date] = [];
+            groupedByDate[date].push(receipt);
+          }
+
+          for (let date in groupedByDate) {
+            const receipts = groupedByDate[date].sort((a, b) => a - b);
+            let missing = [];
+
+            for (let i = 1; i < receipts.length; i++) {
+              const prev = receipts[i - 1];
+              const curr = receipts[i];
+              for (let j = prev + 1; j < curr; j++) {
+                missing.push(j);
+              }
+            }
+
+            if (!allMissing[date]) allMissing[date] = [];
+            allMissing[date] = allMissing[date].concat(missing);
+          }
+
+          processedCount++;
+          if (processedCount === files.length) finalizeOutput();
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function finalizeOutput() {
+        let message = `📄 MISSING RECEIPT NUMBERS BY DATE\n\n`;
+        for (let date in allMissing) {
+          const list = allMissing[date];
+          if (list.length) {
+            message += `📆 ${date}:\n${list.join("\n")}\n\n`;
+          }
+        }
+
+        if (message.trim() === "📄 MISSING RECEIPT NUMBERS BY DATE") {
+          message += "✅ No missing receipt numbers found. Good job!";
+        }
+
+        output.textContent = message;
+        downloadBtn.style.display = "inline-block";
+
+        downloadBtn.onclick = function () {
+          const blob = new Blob([message], { type: "text/plain" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "missing_ORs_by_date.txt";
+          link.click();
+        };
+      }
+    }
+
+    function clearOutput() {
+      document.getElementById("output").textContent = "";
+      document.getElementById("downloadBtn").style.display = "none";
+    }
+  </script>
+</body>
+</html>
