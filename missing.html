@@ -4,145 +4,203 @@
   <meta charset="UTF-8" />
   <title>Missing Receipt Finder</title>
   <style>
+    /* Base & Reset */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Rubik', sans-serif, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background, #1a1a2e);
+      color: var(--text-color, #eaeaea);
+      margin: 0;
       padding: 40px 20px;
-      background-color: #f0f4f8;
-      color: #333;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    :root {
+      --primary: #5a5af4;      /* bright blue */
+      --secondary: #252547;    /* dark navy */
+      --accent: #f0f4f8;       /* light accent */
+      --danger: #e04f5f;       /* red */
+      --success: #45b26b;      /* green */
+      --warning: #f5a623;      /* orange */
+      --purple: #a156f9;       /* purple */
+      --shadow-light: rgba(90, 90, 244, 0.3);
+      --shadow-dark: rgba(0, 0, 0, 0.4);
     }
 
     h1 {
-      color: #2c3e50;
+      font-weight: 700;
+      font-size: 2.8rem;
       margin-bottom: 30px;
+      color: var(--primary);
+      text-align: center;
+      user-select: none;
+      letter-spacing: 1.2px;
     }
 
     .container {
-      background: #fff;
-      border-radius: 10px;
-      padding: 30px;
+      background-color: var(--secondary);
+      border-radius: 16px;
+      padding: 32px 40px;
       max-width: 900px;
       width: 100%;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 4px 14px var(--shadow-light),
+        inset 0 0 30px var(--shadow-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
 
-    .file-upload {
-      margin-bottom: 20px;
-    }
-
-    input[type="file"] {
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #fafafa;
+    .file-upload input[type="file"] {
       width: 100%;
+      padding: 14px 18px;
+      font-size: 1.05rem;
+      border-radius: 10px;
+      border: none;
+      background: var(--background);
+      color: var(--accent);
+      box-shadow: 0 3px 12px var(--shadow-light);
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+    .file-upload input[type="file"]:hover {
+      box-shadow: 0 5px 20px var(--shadow-light);
     }
 
-    .buttons {
-      margin-top: 10px;
+    .buttons, #sqlControls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
       justify-content: center;
     }
 
     button {
-      padding: 14px 28px;
-      font-size: 16px;
-      cursor: pointer;
+      background-color: var(--primary);
       border: none;
-      border-radius: 8px;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
       color: white;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      box-shadow: 0 6px 18px var(--shadow-light);
+      transition:
+        background-color 0.3s ease,
+        transform 0.25s ease,
+        box-shadow 0.3s ease;
+      user-select: none;
     }
 
     button:hover {
-      transform: translateY(-1px);
-      opacity: 0.95;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px var(--shadow-light);
+      opacity: 0.9;
     }
 
-    button#checkBtn {
-      background-color: #3498db;
+    /* Button color variants */
+    #checkBtn {
+      background-color: var(--primary);
     }
 
-    button#clearBtn {
-      background-color: #e74c3c;
+    #clearBtn {
+      background-color: var(--danger);
     }
 
-    button#downloadBtn {
-      background-color: #f39c12;
+    #downloadBtn {
+      background-color: var(--warning);
     }
 
-    button#copyBtn {
-      background-color: #2ecc71;
+    #copyBtn {
+      background-color: var(--success);
     }
 
-    button#toggleSQL {
-      background-color: #9b59b6;
+    #showSQLBtn {
+      background-color: var(--purple);
+    }
+
+    #selectSQLBtn {
+      background-color: #375abf; /* dark blue */
+    }
+
+    #deleteSQLBtn {
+      background-color: #b3322a; /* dark red */
     }
 
     .output-box {
-      margin-top: 30px;
-      font-size: 16px;
+      background-color: var(--background);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 24px;
+      font-size: 1.05rem;
+      color: var(--accent);
       white-space: pre-wrap;
-      color: #2c3e50;
-      text-align: left;
-      border: 1px solid #ccc;
-      padding: 20px;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       max-height: 500px;
       overflow-y: auto;
-      transition: all 0.3s ease-in-out;
+      box-shadow: inset 0 0 12px var(--shadow-dark);
+      user-select: text;
+      transition: background-color 0.3s ease;
     }
 
-    #sqlControls {
-      margin-top: 20px;
-      display: none;
-      gap: 12px;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+    .output-box:empty {
+      min-height: 80px;
     }
 
+    /* Responsive */
     @media (max-width: 600px) {
+      body {
+        padding: 20px 15px;
+      }
+      .container {
+        padding: 24px 20px;
+      }
+      button {
+        flex-grow: 1;
+        text-align: center;
+      }
       .buttons, #sqlControls {
         flex-direction: column;
-        align-items: stretch;
+        gap: 12px;
       }
     }
   </style>
 </head>
 <body>
-  <h1>Missing Receipt [#OR] Finder</h1>
-  <div class="container">
-    <div class="file-upload">
-      <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple />
-    </div>
+  <main>
+    <h1>Missing Receipt [#OR] Finder</h1>
+    <section class="container" role="main" aria-label="Missing Receipt Finder">
+      <div class="file-upload">
+        <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple aria-label="Upload receipt files" />
+      </div>
 
-    <div class="buttons">
-      <button id="checkBtn" onclick="processFiles()">Check Missing</button>
-      <button id="downloadBtn" style="display:none;">Download Result</button>
-      <button id="clearBtn" onclick="clearOutput()">Clear Output</button>
-    </div>
+      <div class="buttons">
+        <button id="checkBtn" onclick="processFiles()">Check Missing</button>
+        <button id="downloadBtn" style="display:none;">Download Result</button>
+        <button id="clearBtn" onclick="clearOutput()">Clear Output</button>
+      </div>
 
-    <div id="output" class="output-box"></div>
+      <pre id="output" class="output-box" aria-live="polite"></pre>
 
-    <div id="sqlControls">
-      <button id="toggleSQL" onclick="toggleSQLVisibility()">Show SQL</button>
-      <button id="copyBtn" onclick="copySQL()">Copy SQL</button>
-    </div>
+      <div id="sqlControls" style="display:none;">
+        <button id="showSQLBtn" onclick="toggleSQLVisibility()">Show SQL</button>
+        <button id="copyBtn" onclick="copySQL()">Copy SQL</button>
+        <button id="selectSQLBtn" onclick="generateSQL('SELECT')">Generate SELECT Query</button>
+        <button id="deleteSQLBtn" onclick="generateSQL('DELETE')">Generate DELETE Query</button>
+      </div>
 
-    <div id="sqlOutput" class="output-box" style="display:none;"></div>
-  </div>
+      <pre id="sqlOutput" class="output-box" style="display:none;"></pre>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
+    let lastMissingArray = [];
+
     function processFiles() {
       const files = document.getElementById("fileInput").files;
       const output = document.getElementById("output");
@@ -194,7 +252,7 @@
           }
 
           if (receiptCol === -1 || dateCol === -1) {
-            output.innerHTML += `Could not find 'Receipt#' or 'Date' in ${file.name}\n`;
+            output.textContent += `Could not find 'Receipt#' or 'Date' in ${file.name}\n`;
             processedCount++;
             if (processedCount === files.length) finalizeOutput();
             return;
@@ -204,16 +262,18 @@
           const groupedByDate = {};
 
           for (let row of rows) {
-            const receipt = Number(row[receiptCol]);
+            const rawReceipt = row[receiptCol];
+            const receipt = rawReceipt && typeof rawReceipt === "string" ? rawReceipt.trim() : rawReceipt;
             const date = row[dateCol];
 
-            if (!date || isNaN(receipt)) continue;
+            if (!date || !receipt || isNaN(Number(receipt))) continue;
+
             if (!groupedByDate[date]) groupedByDate[date] = [];
             groupedByDate[date].push(receipt);
           }
 
           for (let date in groupedByDate) {
-            const receipts = groupedByDate[date].sort((a, b) => a - b);
+            const receipts = groupedByDate[date].map(r => Number(r)).sort((a, b) => a - b);
             let missing = [];
 
             for (let i = 1; i < receipts.length; i++) {
@@ -251,13 +311,11 @@
           message += "No missing receipt numbers found.";
           sqlOutput.style.display = "none";
           sqlControls.style.display = "none";
+          lastMissingArray = [];
         } else {
           const uniqueSorted = [...new Set(allMissingFlat)].sort((a, b) => a - b);
-          const formatted = uniqueSorted.map(n => `"${n}"`).join(", ");
-          const sqlQuery = `SELECT * FROM pos_sale WHERE fdocument_no IN (${formatted});`;
-
-          sqlOutput.textContent = "SQL Format:\n\n" + sqlQuery;
-          sqlOutput.style.display = "none";
+          lastMissingArray = uniqueSorted; // Save for SQL generation
+          displaySQL("SELECT", lastMissingArray);
           sqlControls.style.display = "flex";
         }
 
@@ -274,17 +332,35 @@
       }
     }
 
-    function clearOutput() {
-      document.getElementById("output").textContent = "";
-      document.getElementById("sqlOutput").textContent = "";
-      document.getElementById("sqlOutput").style.display = "none";
-      document.getElementById("sqlControls").style.display = "none";
-      document.getElementById("downloadBtn").style.display = "none";
+    function generateSQL(type) {
+      if (!lastMissingArray.length) {
+        alert("No missing receipt numbers found.");
+        return;
+      }
+      displaySQL(type, lastMissingArray);
+    }
+
+    function displaySQL(type, missingArray) {
+      const sqlOutput = document.getElementById("sqlOutput");
+      const formatted = missingArray.map(n => `"${n}"`).join(", ");
+
+      let sqlQuery = "";
+      if (type === "SELECT") {
+        sqlQuery = `SELECT * FROM pos_sale WHERE fdocument_no IN (${formatted});`;
+      } else if (type === "DELETE") {
+        sqlQuery = `DELETE FROM pos_sale WHERE fdocument_no IN (${formatted});\n\n` +
+                   `DELETE FROM pos_sale_payment WHERE frecno NOT IN (SELECT frecno FROM pos_sale);\n` +
+                   `DELETE FROM pos_sale_product WHERE frecno NOT IN (SELECT frecno FROM pos_sale);`;
+      }
+
+      sqlOutput.textContent = "SQL Format:\n\n" + sqlQuery;
+      sqlOutput.style.display = "block";
+      document.getElementById("showSQLBtn").textContent = "Hide SQL";
     }
 
     function toggleSQLVisibility() {
       const sql = document.getElementById("sqlOutput");
-      const btn = document.getElementById("toggleSQL");
+      const btn = document.getElementById("showSQLBtn");
       if (sql.style.display === "none") {
         sql.style.display = "block";
         btn.textContent = "Hide SQL";
@@ -299,6 +375,16 @@
       navigator.clipboard.writeText(sql).then(() => {
         alert("SQL copied to clipboard!");
       });
+    }
+
+    function clearOutput() {
+      document.getElementById("output").textContent = "";
+      document.getElementById("sqlOutput").textContent = "";
+      document.getElementById("sqlOutput").style.display = "none";
+      document.getElementById("sqlControls").style.display = "none";
+      document.getElementById("downloadBtn").style.display = "none";
+      lastMissingArray = [];
+      document.getElementById("fileInput").value = "";
     }
   </script>
 </body>

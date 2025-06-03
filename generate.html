@@ -4,148 +4,273 @@
   <meta charset="UTF-8" />
   <title>New FRECNO Generator</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f7f9fc;
-      padding: 40px 20px;
-      max-width: 800px;
-      margin: auto;
-      color: #333;
+    @import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+
+    :root {
+      --primary-color: #5c6bc0;
+      --accent-color: #1e1e2f;
+      --light-text: #f8f8f8;
+      --border-color: #44475a;
+      --highlight: #282a36;
+      --btn-hover: #3f51b5;
+      --btn-clear: #ff4d4d;
+      --btn-clear-hover: #cc0000;
+      --btn-copy: #4caf50;
+      --btn-copy-hover: #388e3c;
+      --btn-toggle: #ffa500;
+      --btn-toggle-hover: #cc8400;
+      --font-family: 'Rubik', sans-serif;
     }
 
-    h2, h3 {
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-family);
+      margin: 0 auto;
+      max-width: 900px;
+      background-color: var(--accent-color);
+      color: var(--light-text);
+      padding: 20px 24px;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 18px 24px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
       text-align: center;
-      color: #1e90ff;
-      margin-bottom: 30px;
+      user-select: text;
+      border-radius: 8px;
+      margin-bottom: 32px;
     }
 
     label {
       display: block;
+      margin-bottom: 12px;
       font-weight: 600;
-      margin: 20px 0 6px;
+      font-size: 1.1rem;
+      user-select: text;
     }
 
     input[type="number"],
     textarea {
       width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background-color: #fff;
-      box-sizing: border-box;
+      background-color: var(--highlight);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      color: var(--light-text);
+      resize: vertical;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+      user-select: text;
+      margin-bottom: 20px;
     }
 
-    textarea {
-      height: 120px;
-      resize: vertical;
+    input[type="number"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background-color: #3b3c5a;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+      user-select: none;
     }
 
     button {
-      padding: 10px 20px;
-      margin: 10px 5px 20px 0;
+      flex: 1 1 140px;
+      padding: 12px 24px;
+      background-color: var(--primary-color);
+      color: var(--light-text);
       border: none;
-      border-radius: 6px;
-      font-size: 15px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background-color 0.25s ease, transform 0.12s ease;
+      box-shadow: 0 3px 8px rgba(92,107,192,0.5);
+      user-select: none;
+      text-align: center;
     }
 
-    button:hover { opacity: 0.9; }
-    button:active { transform: scale(0.98); }
+    button:hover {
+      background-color: var(--btn-hover);
+      box-shadow: 0 6px 14px rgba(63,81,181,0.8);
+      transform: scale(1.04);
+    }
 
-    .primary { background-color: #1e90ff; color: white; }
-    .danger { background-color: #ff4d4d; color: white; }
-    .secondary { background-color: #ffa500; color: white; }
-    .copy { background-color: #4caf50; color: white; margin-bottom: 20px; }
+    button:active {
+      transform: scale(0.96);
+    }
 
-    pre {
-      background-color: #fff;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
+    button.clear {
+      background-color: var(--btn-clear);
+      box-shadow: 0 3px 8px rgba(255,77,77,0.6);
+    }
+
+    button.clear:hover {
+      background-color: var(--btn-clear-hover);
+      box-shadow: 0 6px 14px rgba(204,0,0,0.8);
+    }
+
+    button.copy {
+      background-color: var(--btn-copy);
+      box-shadow: 0 3px 8px rgba(76,175,80,0.6);
+    }
+
+    button.copy:hover {
+      background-color: var(--btn-copy-hover);
+      box-shadow: 0 6px 14px rgba(56,142,60,0.8);
+    }
+
+    button.toggle {
+      background-color: var(--btn-toggle);
+      box-shadow: 0 3px 8px rgba(255,165,0,0.6);
+      flex: 1 1 120px;
+    }
+
+    button.toggle:hover {
+      background-color: var(--btn-toggle-hover);
+      box-shadow: 0 6px 14px rgba(204,132,0,0.8);
+    }
+
+    pre#generateOutput {
+      background-color: var(--highlight);
+      border-left: 6px solid var(--primary-color);
+      border-radius: 0 8px 8px 0;
+      padding: 24px 28px;
+      margin: 0;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 15px;
+      font-size: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--light-text);
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+      display: none;
+      user-select: text;
+    }
+
+    @media (max-width: 600px) {
+      .button-group {
+        flex-direction: column;
+      }
+      button {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h2>🔧 New FRECNO Generator</h2>
+  <header>New FRECNO Generator</header>
 
-  <label for="startRecno">Latest FRECNO (start point):</label>
-  <input type="number" id="startRecno" value=""/>
+  <label for="startFrecno">Latest FRECNO (start point):</label>
+  <input type="number" id="startFrecno" placeholder="e.g. 122000" aria-label="Enter starting FRECNO">
 
-  <label for="oldRecnos">Paste old FRECNO values (one per line):</label>
-  <textarea id="oldRecnos" placeholder="e.g.&#10;193742&#10;193743&#10;193744"></textarea>
+  <label for="oldFrecnos">Paste old FRECNO values (one per line):</label>
+  <textarea id="oldFrecnos" placeholder="e.g.&#10;193742&#10;193743&#10;193744" aria-label="Paste old FRECNOs here"></textarea>
 
-  <div>
-    <button class="primary" onclick="generateSQL()">Generate SQL</button>
-    <button class="danger" onclick="clearForm()">Clear</button>
-    <button class="secondary" onclick="generateFtransmitReset()">Ftransmit Reset Script</button>
+  <div class="button-group" role="group" aria-label="Form controls">
+    <button onclick="generateFrecnos()" aria-label="Generate FRECNO SQL block">Generate</button>
+    <button class="clear" onclick="clearForm()" aria-label="Clear form and output">Clear</button>
+    <button class="copy" onclick="copyGeneratedFrecnos()" aria-label="Copy output to clipboard">Copy to Clipboard</button>
+    <button class="toggle" onclick="toggleGeneratedOutput()" aria-pressed="false" aria-label="Toggle output visibility">Show/Hide Output</button>
   </div>
 
-  <h3>📝 Generated SQL:</h3>
-  <button class="copy" onclick="copySQL()">Copy to Clipboard</button>
-
-  <pre id="outputSQL">/* Output will appear here after generation */</pre>
+  <pre id="generateOutput" aria-live="polite" aria-atomic="true">/* Generated FRECNOs will appear here */</pre>
 
   <script>
-    function generateSQL() {
-      const startVal = parseInt(document.getElementById('startRecno').value);
-      const oldText = document.getElementById('oldRecnos').value.trim();
+    function generateFrecnos() {
+      const start = parseInt(document.getElementById("startFrecno").value);
+      const oldText = document.getElementById("oldFrecnos").value.trim();
+      const output = document.getElementById("generateOutput");
 
-      if (!startVal || !oldText) {
-        alert("Please enter both the latest FRECNO and at least one old FRECNO.");
+      if (isNaN(start) || !oldText) {
+        alert("Please enter the latest FRECNO and paste old FRECNO values.");
         return;
       }
 
       const oldLines = oldText.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-      const tables = ['pos_sale', 'pos_sale_payment', 'pos_sale_product'];
-      let currentNew = startVal;
+      if (oldLines.length === 0) {
+        alert("Please paste at least one old FRECNO.");
+        return;
+      }
 
+      const tables = ['pos_sale', 'pos_sale_payment', 'pos_sale_product'];
+      let currentNew = start;
+
+      // Map old FRECNO to new incremented FRECNO
       const mappings = oldLines.map(oldVal => ({
         oldVal,
         newVal: currentNew++
       }));
 
-      const fullSQL = tables.map(table => {
-        let sql = `UPDATE ${table}\nSET frecno = \n  CASE frecno\n`;
+      // Build SQL update statements string in CASE WHEN format with double quotes around values
+      let sql = '';
+      tables.forEach(table => {
+        sql += `UPDATE ${table} \nSET frecno = \n  CASE frecno\n`;
         mappings.forEach(({ oldVal, newVal }) => {
-          sql += `    WHEN '${oldVal}' THEN '${newVal}'\n`;
+          sql += `    WHEN "${oldVal}" THEN "${newVal}"\n`;
         });
-        sql += `    ELSE frecno\n  END;`;
-        return sql;
-      }).join('\n\n');
+        sql += `\n    ELSE frecno\n  END;\n\n`;
+      });
 
-      document.getElementById('outputSQL').textContent = fullSQL;
-    }
-
-    function generateFtransmitReset() {
-      const sql = `UPDATE pos_sale SET ftransmit='0000';\n` +
-                  `UPDATE pos_sale_payment SET ftransmit='0000';\n` +
-                  `UPDATE pos_sale_product SET ftransmit='0000';`;
-      document.getElementById('outputSQL').textContent = sql;
+      output.textContent = sql.trim();
+      output.style.display = 'block';
+      output.scrollTop = 0;
     }
 
     function clearForm() {
-      document.getElementById('startRecno').value = '';
-      document.getElementById('oldRecnos').value = '';
-      document.getElementById('outputSQL').textContent = '/* Output will appear here after generation */';
+      document.getElementById("startFrecno").value = "";
+      document.getElementById("oldFrecnos").value = "";
+      const output = document.getElementById("generateOutput");
+      output.textContent = "";
+      output.style.display = 'none';
     }
 
-    function copySQL() {
-      const output = document.getElementById('outputSQL').textContent;
-      if (!output || output.includes("Output will appear")) {
-        alert('Nothing to copy. Please generate SQL first.');
+    function copyGeneratedFrecnos() {
+      const output = document.getElementById("generateOutput");
+      if (!output.textContent.trim()) {
+        alert("Nothing to copy. Please generate FRECNOs first.");
         return;
       }
+      navigator.clipboard.writeText(output.textContent).then(() => {
+        alert("Copied to clipboard!");
+      }).catch(() => {
+        alert("Failed to copy. Try manually.");
+      });
+    }
 
-      navigator.clipboard.writeText(output)
-        .then(() => alert('✅ SQL script copied to clipboard!'))
-        .catch(() => alert('❌ Copy failed. Try manually.'));
+    function toggleGeneratedOutput() {
+      const output = document.getElementById("generateOutput");
+      const btn = event.currentTarget;
+      if (output.style.display === 'block') {
+        output.style.display = 'none';
+        btn.setAttribute('aria-pressed', 'false');
+      } else {
+        output.style.display = 'block';
+        btn.setAttribute('aria-pressed', 'true');
+        output.scrollTop = 0;
+      }
     }
   </script>
 

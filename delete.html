@@ -2,15 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Frecno DELETE Generator</title>
+  <title>FRECNO DELETE Generator</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+
     :root {
-      --primary-color: #5c6bc0;
-      --accent-color: #f8f8f8;
-      --border-color: #ccc;
-      --highlight: #fce4ec;
-      --dark-bg: #2c3e50;
-      --light-text: #fff;
+      --primary-color: #5c6bc0;     /* blue-purple */
+      --accent-color: #1e1e2f;      /* dark background */
+      --light-text: #f8f8f8;        /* near white */
+      --border-color: #44475a;
+      --highlight: #282a36;
+      --btn-hover: #3f51b5;
+      --btn-clear: #ff4d4d;
+      --btn-clear-hover: #cc0000;
+      --btn-copy: #4caf50;
+      --btn-copy-hover: #388e3c;
+      --btn-toggle: #ffa500;
+      --btn-toggle-hover: #cc8400;
+      --font-family: 'Rubik', sans-serif;
     }
 
     * {
@@ -18,136 +27,175 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f4f4f4;
-      color: #333;
+      font-family: var(--font-family);
+      margin: 0 auto;
+      max-width: 900px;
+      background-color: var(--accent-color);
+      color: var(--light-text);
+      padding: 20px 24px;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     header {
       position: sticky;
       top: 0;
-      background-color: var(--dark-bg);
+      background-color: var(--primary-color);
       color: var(--light-text);
-      padding: 15px 20px;
-      font-size: 1.4rem;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      padding: 18px 24px;
+      font-size: 1.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       z-index: 1000;
-    }
-
-    main {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
+      text-align: center;
+      user-select: text;
+      border-radius: 8px;
+      margin-bottom: 32px;
     }
 
     label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       font-weight: 600;
+      font-size: 1.1rem;
+      user-select: text;
     }
 
     textarea {
       width: 100%;
-      height: 150px;
-      padding: 12px;
-      background-color: var(--accent-color);
+      min-height: 140px;
+      background-color: var(--highlight);
       border: 2px solid var(--border-color);
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 14px;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      color: var(--light-text);
       resize: vertical;
-      transition: border-color 0.2s;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+      user-select: text;
+      margin-bottom: 16px;
     }
 
     textarea:focus {
       outline: none;
       border-color: var(--primary-color);
+      background-color: #3b3c5a;
     }
 
     .button-group {
-      margin: 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+      user-select: none;
     }
 
     button {
-      padding: 10px 18px;
+      flex: 1 1 140px;
+      padding: 12px 24px;
       background-color: var(--primary-color);
-      color: white;
+      color: var(--light-text);
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      margin-right: 10px;
-      transition: background-color 0.2s ease;
+      transition: background-color 0.25s ease, transform 0.12s ease;
+      box-shadow: 0 3px 8px rgba(92,107,192,0.5);
+      user-select: none;
+      text-align: center;
     }
 
     button:hover {
-      background-color: #3f51b5;
+      background-color: var(--btn-hover);
+      box-shadow: 0 6px 14px rgba(63,81,181,0.8);
+      transform: scale(1.04);
     }
 
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.96);
     }
 
-    .output-container {
-      margin-top: 20px;
+    button.clear {
+      background-color: var(--btn-clear);
+      box-shadow: 0 3px 8px rgba(255,77,77,0.6);
     }
 
-    .toggle-output {
-      background-color: #999;
-      font-size: 13px;
-      margin-top: 10px;
+    button.clear:hover {
+      background-color: var(--btn-clear-hover);
+      box-shadow: 0 6px 14px rgba(204,0,0,0.8);
     }
 
-    pre {
+    button.copy {
+      background-color: var(--btn-copy);
+      box-shadow: 0 3px 8px rgba(76,175,80,0.6);
+    }
+
+    button.copy:hover {
+      background-color: var(--btn-copy-hover);
+      box-shadow: 0 6px 14px rgba(56,142,60,0.8);
+    }
+
+    button.toggle {
+      background-color: var(--btn-toggle);
+      box-shadow: 0 3px 8px rgba(255,165,0,0.6);
+      flex: 1 1 120px;
+    }
+
+    button.toggle:hover {
+      background-color: var(--btn-toggle-hover);
+      box-shadow: 0 6px 14px rgba(204,132,0,0.8);
+    }
+
+    pre#deleteOutput {
       background-color: var(--highlight);
-      border-left: 4px solid var(--primary-color);
-      padding: 20px;
-      margin: 10px 0;
-      font-family: monospace;
-      font-size: 14px;
+      border-left: 6px solid var(--primary-color);
+      border-radius: 0 8px 8px 0;
+      padding: 24px 28px;
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
       white-space: pre-wrap;
       word-break: break-word;
+      color: var(--light-text);
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
       display: none;
+      user-select: text;
     }
 
     @media (max-width: 600px) {
-      button {
-        width: 100%;
-        margin-top: 10px;
-      }
-
       .button-group {
-        display: flex;
         flex-direction: column;
+      }
+      button {
+        flex: 1 1 100%;
       }
     }
   </style>
 </head>
 <body>
 
-  <header>🗑️ DELETE Frecno Generator</header>
+  <header>FRECNO DELETE Generator</header>
 
-  <main>
-    <label for="deleteRecnos">
-      Ari e input frecno na imo ipabilin aron di madelete<br>
-      (one per line; e by column pag butang sa frecno dong):
-    </label>
+  <label for="deleteRecnos">
+    Input FRECNO values to keep (one per line):
+  </label>
 
-    <textarea id="deleteRecnos" placeholder="e.g.&#10;122086&#10;122088"></textarea>
+  <textarea id="deleteRecnos" placeholder="e.g.&#10;122086&#10;122088" aria-label="Input FRECNO values to keep"></textarea>
 
-    <div class="button-group">
-      <button onclick="generateDeleteSQL()">Generate DELETE SQL</button>
-      <button onclick="clearDeleteForm()">Clear</button>
-      <button onclick="copyToClipboard()">Copy to Clipboard</button>
-      <button class="toggle-output" onclick="toggleOutput()">Show/Hide Output</button>
-    </div>
+  <div class="button-group" role="group" aria-label="Form controls">
+    <button onclick="generateDeleteSQL()" aria-label="Generate DELETE SQL statement">Generate DELETE SQL</button>
+    <button class="clear" onclick="clearDeleteForm()" aria-label="Clear all inputs and output">Clear</button>
+    <button class="copy" onclick="copyToClipboard()" aria-label="Copy SQL output to clipboard">Copy to Clipboard</button>
+    <button class="toggle" onclick="toggleOutput()" aria-pressed="false" aria-label="Show or hide SQL output">Show/Hide Output</button>
+  </div>
 
-    <div class="output-container">
-      <pre id="deleteOutput"></pre>
-    </div>
-  </main>
+  <pre id="deleteOutput" aria-live="polite" aria-atomic="true">/* Output will appear here after generation */</pre>
 
   <script>
     function generateDeleteSQL() {
@@ -155,7 +203,7 @@
       const outputBox = document.getElementById("deleteOutput");
 
       if (!raw) {
-        alert("Please input frecno values first.");
+        alert("Please enter FRECNO values to keep.");
         return;
       }
 
@@ -163,7 +211,7 @@
         .split(/\r?\n/)
         .map(val => val.trim())
         .filter(val => val)
-        .map(val => `"${val}"`);
+        .map(val => `'${val}'`);
 
       const grouped = [];
       for (let i = 0; i < values.length; i += 8) {
@@ -195,24 +243,27 @@ WHERE frecno NOT IN (
     function clearDeleteForm() {
       document.getElementById("deleteRecnos").value = '';
       const outputBox = document.getElementById("deleteOutput");
-      outputBox.textContent = '';
+      outputBox.textContent = '/* Output will appear here after generation */';
       outputBox.style.display = 'none';
     }
 
     function copyToClipboard() {
       const output = document.getElementById("deleteOutput").textContent;
-      if (!output) {
-        alert("Nothing to copy yet! Aysig kiat ug nawng ara");
+      if (!output || output.includes("Output will appear")) {
+        alert("Nothing to copy. Please generate the SQL first.");
         return;
       }
       navigator.clipboard.writeText(output).then(() => {
-        alert("Copied to clipboard! Trabaho tarong tapolan");
+        alert("SQL script copied to clipboard!");
       });
     }
 
     function toggleOutput() {
       const output = document.getElementById("deleteOutput");
-      output.style.display = output.style.display === "block" ? "none" : "block";
+      const toggleBtn = document.querySelector("button.toggle");
+      const isVisible = output.style.display === "block";
+      output.style.display = isVisible ? "none" : "block";
+      toggleBtn.setAttribute("aria-pressed", !isVisible);
     }
   </script>
 
