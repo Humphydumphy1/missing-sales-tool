@@ -6,10 +6,12 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 40px;
-      text-align: center;
+      padding: 40px 20px;
       background-color: #f0f4f8;
       color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
@@ -17,62 +19,127 @@
       margin-bottom: 30px;
     }
 
-    input[type="file"] {
-      padding: 12px;
-      font-size: 16px;
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .file-upload {
       margin-bottom: 20px;
     }
 
-    button {
-      padding: 12px 24px;
+    input[type="file"] {
+      padding: 12px;
       font-size: 16px;
-      margin: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      width: 100%;
+    }
+
+    .buttons {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 16px;
       cursor: pointer;
       border: none;
-      border-radius: 6px;
-      background-color: #3498db;
+      border-radius: 8px;
       color: white;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     button:hover {
-      background-color: #2980b9;
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    button#checkBtn {
+      background-color: #3498db;
     }
 
     button#clearBtn {
       background-color: #e74c3c;
     }
 
-    button#clearBtn:hover {
-      background-color: #c0392b;
+    button#downloadBtn {
+      background-color: #f39c12;
     }
 
-    #output {
+    button#copyBtn {
+      background-color: #2ecc71;
+    }
+
+    button#toggleSQL {
+      background-color: #9b59b6;
+    }
+
+    .output-box {
       margin-top: 30px;
-      font-size: 17px;
-      white-space: pre;
+      font-size: 16px;
+      white-space: pre-wrap;
       color: #2c3e50;
-      max-width: 850px;
-      margin-left: auto;
-      margin-right: auto;
       text-align: left;
       border: 1px solid #ccc;
-      padding: 25px;
+      padding: 20px;
       background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      max-height: 500px;
+      overflow-y: auto;
+      transition: all 0.3s ease-in-out;
+    }
+
+    #sqlControls {
+      margin-top: 20px;
+      display: none;
+      gap: 12px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 600px) {
+      .buttons, #sqlControls {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🧾 Missing Receipt Finder</h1>
-  <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple />
-  <div>
-    <button onclick="processFiles()">Check Missing</button>
-    <button id="downloadBtn" style="display:none;">Download Result as .txt</button>
-    <button id="clearBtn" onclick="clearOutput()">Clear Output</button>
+  <h1>Missing Receipt [#OR] Finder</h1>
+  <div class="container">
+    <div class="file-upload">
+      <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple />
+    </div>
+
+    <div class="buttons">
+      <button id="checkBtn" onclick="processFiles()">Check Missing</button>
+      <button id="downloadBtn" style="display:none;">Download Result</button>
+      <button id="clearBtn" onclick="clearOutput()">Clear Output</button>
+    </div>
+
+    <div id="output" class="output-box"></div>
+
+    <div id="sqlControls">
+      <button id="toggleSQL" onclick="toggleSQLVisibility()">Show SQL</button>
+      <button id="copyBtn" onclick="copySQL()">Copy SQL</button>
+    </div>
+
+    <div id="sqlOutput" class="output-box" style="display:none;"></div>
   </div>
-  <div id="output"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
@@ -80,14 +147,18 @@
       const files = document.getElementById("fileInput").files;
       const output = document.getElementById("output");
       const downloadBtn = document.getElementById("downloadBtn");
+      const sqlOutput = document.getElementById("sqlOutput");
+      const sqlControls = document.getElementById("sqlControls");
 
       if (!files.length) {
         alert("Please select at least one file.");
         return;
       }
 
-      output.textContent = "⏳ Processing files...\n";
+      output.textContent = "Processing files...\n";
       downloadBtn.style.display = "none";
+      sqlOutput.style.display = "none";
+      sqlControls.style.display = "none";
 
       let allMissing = {};
       let processedCount = 0;
@@ -123,7 +194,7 @@
           }
 
           if (receiptCol === -1 || dateCol === -1) {
-            output.innerHTML += `❌ Could not find 'Receipt#' or 'Date' in ${file.name}\n`;
+            output.innerHTML += `Could not find 'Receipt#' or 'Date' in ${file.name}\n`;
             processedCount++;
             if (processedCount === files.length) finalizeOutput();
             return;
@@ -165,16 +236,29 @@
       }
 
       function finalizeOutput() {
-        let message = `📄 MISSING RECEIPT NUMBERS BY DATE\n\n`;
+        let message = `MISSING RECEIPT NUMBERS BY DATE\n\n`;
+        let allMissingFlat = [];
+
         for (let date in allMissing) {
           const list = allMissing[date];
           if (list.length) {
-            message += `📆 ${date}:\n${list.join("\n")}\n\n`;
+            message += `${date}:\n${list.join(", ")}\n\n`;
+            allMissingFlat.push(...list);
           }
         }
 
-        if (message.trim() === "📄 MISSING RECEIPT NUMBERS BY DATE") {
-          message += "✅ No missing receipt numbers found. Good job!";
+        if (allMissingFlat.length === 0) {
+          message += "No missing receipt numbers found.";
+          sqlOutput.style.display = "none";
+          sqlControls.style.display = "none";
+        } else {
+          const uniqueSorted = [...new Set(allMissingFlat)].sort((a, b) => a - b);
+          const formatted = uniqueSorted.map(n => `"${n}"`).join(", ");
+          const sqlQuery = `SELECT * FROM pos_sale WHERE fdocument_no IN (${formatted});`;
+
+          sqlOutput.textContent = "SQL Format:\n\n" + sqlQuery;
+          sqlOutput.style.display = "none";
+          sqlControls.style.display = "flex";
         }
 
         output.textContent = message;
@@ -192,7 +276,29 @@
 
     function clearOutput() {
       document.getElementById("output").textContent = "";
+      document.getElementById("sqlOutput").textContent = "";
+      document.getElementById("sqlOutput").style.display = "none";
+      document.getElementById("sqlControls").style.display = "none";
       document.getElementById("downloadBtn").style.display = "none";
+    }
+
+    function toggleSQLVisibility() {
+      const sql = document.getElementById("sqlOutput");
+      const btn = document.getElementById("toggleSQL");
+      if (sql.style.display === "none") {
+        sql.style.display = "block";
+        btn.textContent = "Hide SQL";
+      } else {
+        sql.style.display = "none";
+        btn.textContent = "Show SQL";
+      }
+    }
+
+    function copySQL() {
+      const sql = document.getElementById("sqlOutput").textContent.replace("SQL Format:\n\n", "");
+      navigator.clipboard.writeText(sql).then(() => {
+        alert("SQL copied to clipboard!");
+      });
     }
   </script>
 </body>
