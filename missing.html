@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Missing Receipt Finder</title>
   <style>
-    /* Base & Reset */
     * {
       box-sizing: border-box;
     }
@@ -22,13 +21,13 @@
     }
 
     :root {
-      --primary: #5a5af4;      /* bright blue */
-      --secondary: #252547;    /* dark navy */
-      --accent: #f0f4f8;       /* light accent */
-      --danger: #e04f5f;       /* red */
-      --success: #45b26b;      /* green */
-      --warning: #f5a623;      /* orange */
-      --purple: #a156f9;       /* purple */
+      --primary: #5a5af4;
+      --secondary: #252547;
+      --accent: #f0f4f8;
+      --danger: #e04f5f;
+      --success: #45b26b;
+      --warning: #f5a623;
+      --purple: #a156f9;
       --shadow-light: rgba(90, 90, 244, 0.3);
       --shadow-dark: rgba(0, 0, 0, 0.4);
     }
@@ -49,12 +48,23 @@
       padding: 32px 40px;
       max-width: 900px;
       width: 100%;
-      box-shadow:
-        0 4px 14px var(--shadow-light),
-        inset 0 0 30px var(--shadow-dark);
+      box-shadow: 0 4px 14px var(--shadow-light), inset 0 0 30px var(--shadow-dark);
       display: flex;
       flex-direction: column;
       gap: 24px;
+    }
+
+    .file-upload {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+      position: relative;
+    }
+
+    .file-upload.dragover {
+      background-color: rgba(90, 90, 244, 0.1);
     }
 
     .file-upload input[type="file"] {
@@ -69,6 +79,7 @@
       cursor: pointer;
       transition: box-shadow 0.3s ease;
     }
+
     .file-upload input[type="file"]:hover {
       box-shadow: 0 5px 20px var(--shadow-light);
     }
@@ -90,10 +101,7 @@
       color: white;
       cursor: pointer;
       box-shadow: 0 6px 18px var(--shadow-light);
-      transition:
-        background-color 0.3s ease,
-        transform 0.25s ease,
-        box-shadow 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
       user-select: none;
     }
 
@@ -103,34 +111,13 @@
       opacity: 0.9;
     }
 
-    /* Button color variants */
-    #checkBtn {
-      background-color: var(--primary);
-    }
-
-    #clearBtn {
-      background-color: var(--danger);
-    }
-
-    #downloadBtn {
-      background-color: var(--warning);
-    }
-
-    #copyBtn {
-      background-color: var(--success);
-    }
-
-    #showSQLBtn {
-      background-color: var(--purple);
-    }
-
-    #selectSQLBtn {
-      background-color: #375abf; /* dark blue */
-    }
-
-    #deleteSQLBtn {
-      background-color: #b3322a; /* dark red */
-    }
+    #checkBtn { background-color: var(--primary); }
+    #clearBtn { background-color: var(--danger); }
+    #downloadBtn { background-color: var(--warning); }
+    #copyBtn { background-color: var(--success); }
+    #showSQLBtn { background-color: var(--purple); }
+    #selectSQLBtn { background-color: #375abf; }
+    #deleteSQLBtn { background-color: #b3322a; }
 
     .output-box {
       background-color: var(--background);
@@ -151,14 +138,9 @@
       min-height: 80px;
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
-      body {
-        padding: 20px 15px;
-      }
-      .container {
-        padding: 24px 20px;
-      }
+      body { padding: 20px 15px; }
+      .container { padding: 24px 20px; }
       button {
         flex-grow: 1;
         text-align: center;
@@ -174,8 +156,9 @@
   <main>
     <h1>Missing Receipt [#OR] Finder</h1>
     <section class="container" role="main" aria-label="Missing Receipt Finder">
-      <div class="file-upload">
+      <div class="file-upload" id="dropArea">
         <input type="file" id="fileInput" accept=".xls,.xlsx,.ods,.csv" multiple aria-label="Upload receipt files" />
+        <p>Drag and drop files here or click to choose</p>
       </div>
 
       <div class="buttons">
@@ -314,7 +297,7 @@
           lastMissingArray = [];
         } else {
           const uniqueSorted = [...new Set(allMissingFlat)].sort((a, b) => a - b);
-          lastMissingArray = uniqueSorted; // Save for SQL generation
+          lastMissingArray = uniqueSorted;
           displaySQL("SELECT", lastMissingArray);
           sqlControls.style.display = "flex";
         }
@@ -343,49 +326,65 @@
     function displaySQL(type, missingArray) {
       const sqlOutput = document.getElementById("sqlOutput");
       const formatted = missingArray.map(n => `"${n}"`).join(", ");
-
       let sqlQuery = "";
+
       if (type === "SELECT") {
         sqlQuery = `SELECT * FROM pos_sale WHERE fdocument_no IN (${formatted});`;
       } else if (type === "DELETE") {
         sqlQuery = `DELETE FROM pos_sale WHERE fdocument_no IN (${formatted});\n\n` +
                    `DELETE FROM pos_sale_payment WHERE frecno NOT IN (SELECT frecno FROM pos_sale);\n` +
-                   `DELETE FROM pos_sale_product WHERE frecno NOT IN (SELECT frecno FROM pos_sale);`;
+                   `DELETE FROM pos_audit WHERE frecno NOT IN (SELECT frecno FROM pos_sale);`;
       }
 
-      sqlOutput.textContent = "SQL Format:\n\n" + sqlQuery;
+      sqlOutput.textContent = sqlQuery;
       sqlOutput.style.display = "block";
-      document.getElementById("showSQLBtn").textContent = "Hide SQL";
     }
 
     function toggleSQLVisibility() {
-      const sql = document.getElementById("sqlOutput");
-      const btn = document.getElementById("showSQLBtn");
-      if (sql.style.display === "none") {
-        sql.style.display = "block";
-        btn.textContent = "Hide SQL";
-      } else {
-        sql.style.display = "none";
-        btn.textContent = "Show SQL";
-      }
+      const sqlOutput = document.getElementById("sqlOutput");
+      sqlOutput.style.display = sqlOutput.style.display === "block" ? "none" : "block";
     }
 
     function copySQL() {
-      const sql = document.getElementById("sqlOutput").textContent.replace("SQL Format:\n\n", "");
-      navigator.clipboard.writeText(sql).then(() => {
+      const sqlOutput = document.getElementById("sqlOutput");
+      navigator.clipboard.writeText(sqlOutput.textContent).then(() => {
         alert("SQL copied to clipboard!");
       });
     }
 
     function clearOutput() {
       document.getElementById("output").textContent = "";
-      document.getElementById("sqlOutput").textContent = "";
       document.getElementById("sqlOutput").style.display = "none";
       document.getElementById("sqlControls").style.display = "none";
       document.getElementById("downloadBtn").style.display = "none";
       lastMissingArray = [];
-      document.getElementById("fileInput").value = "";
     }
+
+    // Drag & Drop support
+    const dropArea = document.getElementById("dropArea");
+    const fileInput = document.getElementById("fileInput");
+
+    ["dragenter", "dragover"].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropArea.classList.add("dragover");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(eventName => {
+      dropArea.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropArea.classList.remove("dragover");
+      });
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      fileInput.files = files;
+    });
   </script>
 </body>
 </html>

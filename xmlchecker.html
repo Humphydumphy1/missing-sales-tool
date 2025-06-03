@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tenant XML Bulk Updater</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --secondary: #6c757d;
+      --secondary-hover: #5a6268;
+      --success: #28a745;
+      --error: #dc3545;
+      --neutral: #f8f9fa;
+      --text: #333;
+      --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--neutral);
+      color: var(--text);
+      max-width: 700px;
+      margin: auto;
+      padding: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: white;
+      box-sizing: border-box;
+    }
+
+    #dropZone {
+      border: 2px dashed #ccc;
+      padding: 1.25rem;
+      text-align: center;
+      background: white;
+      color: #666;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      transition: background 0.2s ease-in-out, border-color 0.2s;
+    }
+
+    #dropZone.dragover {
+      background: #e0f7ff;
+      border-color: var(--primary);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      flex: 1;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button.secondary {
+      background: var(--secondary);
+    }
+
+    button.secondary:hover {
+      background: var(--secondary-hover);
+    }
+
+    #progress {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+
+    .output {
+      display: none;
+      background: white;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .output.success { border-left: 5px solid var(--success); }
+    .output.error   { border-left: 5px solid var(--error); }
+
+    .file-status {
+      margin-bottom: 0.25rem;
+    }
+
+    .file-status.success { color: var(--success); }
+    .file-status.error   { color: var(--error); }
+  </style>
+</head>
+<body>
+
+  <h2>XML File Updater</h2>
+
+  <div class="form-group">
+    <label for="tenantId">Tenant ID:</label>
+    <input type="text" id="tenantId" placeholder="e.g. 25021984">
+  </div>
+
+  <div class="form-group">
+    <label for="tenantKey">Tenant Key:</label>
+    <input type="text" id="tenantKey" placeholder="e.g. HKBLVGAU">
+  </div>
+
+  <div class="form-group">
+    <label for="xmlFile">Upload XML File(s):</label>
+    <input type="file" id="xmlFile" accept=".xml" multiple>
+  </div>
+
+  <div id="dropZone">Drag & Drop XML files here</div>
+
+  <div class="button-group">
+    <button onclick="processFiles()">Update and Download</button>
+    <button class="secondary" onclick="clearOutput()">Clear Output</button>
+  </div>
+
+  <div id="progress"></div>
+  <div class="output" id="outputMsg"></div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('xmlFile');
+    const progress = document.getElementById('progress');
+    const output = document.getElementById('outputMsg');
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      fileInput.files = e.dataTransfer.files;
+    });
+
+    function clearOutput() {
+      output.innerText = '';
+      output.className = 'output';
+      output.style.display = 'none';
+      progress.innerText = '';
+    }
+
+    function processFiles() {
+      const tenantId = document.getElementById('tenantId').value.trim();
+      const tenantKey = document.getElementById('tenantKey').value.trim();
+      const files = Array.from(fileInput.files);
+
+      clearOutput();
+
+      if (!tenantId || !tenantKey || files.length === 0) {
+        alert("Please provide Tenant ID, Tenant Key, and at least one XML file.");
+        return;
+      }
+
+      let processedCount = 0;
+      const totalFiles = files.length;
+
+      output.style.display = 'block';
+
+      files.forEach(file => {
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+          try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
+
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+              throw new Error("Malformed XML");
+            }
+
+            const tenantIdNode = xmlDoc.querySelector("tenantid");
+            const keyNode = xmlDoc.querySelector("key");
+
+            if (!tenantIdNode || !keyNode) {
+              throw new Error("<tenantid> or <key> tag missing");
+            }
+
+            tenantIdNode.textContent = tenantId;
+            keyNode.textContent = tenantKey;
+
+            let terminalID = "0000";
+            let fzCounter = "00000";
+
+            const parts = file.name.replace(".xml", "").split("_");
+            if (parts.length >= 3) {
+              terminalID = parts[parts.length - 2];
+              fzCounter = parts[parts.length - 1];
+            } else {
+              const tmidTag = xmlDoc.querySelector("tmid");
+              if (tmidTag) terminalID = tmidTag.textContent.padStart(4, '0');
+            }
+
+            const serializer = new XMLSerializer();
+            const updatedXML = serializer.serializeToString(xmlDoc);
+            const newFilename = `sales_${tenantId}_${terminalID}_${fzCounter}.xml`;
+
+            const blob = new Blob([updatedXML], { type: "text/xml" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = newFilename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            output.innerHTML += `<div class="file-status success">${file.name} → ${newFilename}</div>`;
+          } catch (error) {
+            output.innerHTML += `<div class="file-status error">${file.name} — ${error.message}</div>`;
+          } finally {
+            processedCount++;
+            progress.innerText = `Progress: ${processedCount} of ${totalFiles} files processed.`;
+          }
+        };
+
+        reader.onerror = () => {
+          output.innerHTML += `<div class="file-status error">Failed to read ${file.name}</div>`;
+          processedCount++;
+          progress.innerText = `Progress: ${processedCount} of ${totalFiles} files processed.`;
+        };
+
+        reader.readAsText(file);
+      });
+    }
+  </script>
+</body>
+</html>
