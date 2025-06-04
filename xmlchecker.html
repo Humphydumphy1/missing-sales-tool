@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tenant XML Bulk Updater</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>XML File Updater</title>
   <style>
     :root {
       --primary: #007bff;
@@ -12,59 +13,62 @@
       --success: #28a745;
       --error: #dc3545;
       --neutral: #f8f9fa;
-      --text: #333;
+      --text: #212529;
       --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       font-family: var(--font);
-      background: var(--neutral);
+      background-color: var(--neutral);
       color: var(--text);
-      max-width: 700px;
-      margin: auto;
+      margin: 0 auto;
+      max-width: 800px;
       padding: 2rem;
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       font-weight: 600;
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
     }
 
     label {
       display: block;
-      font-weight: 500;
       margin-bottom: 0.5rem;
+      font-weight: 500;
     }
 
     input[type="text"],
     input[type="file"] {
       width: 100%;
-      padding: 0.6rem;
+      padding: 0.65rem;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       background: white;
-      box-sizing: border-box;
     }
 
     #dropZone {
-      border: 2px dashed #ccc;
-      padding: 1.25rem;
+      border: 2px dashed #aaa;
+      background-color: white;
+      padding: 1.5rem;
       text-align: center;
-      background: white;
       color: #666;
       border-radius: 8px;
       margin-bottom: 1.5rem;
-      transition: background 0.2s ease-in-out, border-color 0.2s;
+      transition: all 0.2s ease;
     }
 
     #dropZone.dragover {
-      background: #e0f7ff;
+      background-color: #e0f7ff;
       border-color: var(--primary);
     }
 
@@ -76,55 +80,64 @@
 
     button {
       flex: 1;
-      background: var(--primary);
-      color: white;
-      border: none;
       padding: 0.75rem;
-      border-radius: 6px;
       font-size: 1rem;
       font-weight: 500;
+      color: white;
+      background-color: var(--primary);
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background 0.2s ease-in-out;
+      transition: background-color 0.2s ease;
     }
 
     button:hover {
-      background: var(--primary-hover);
+      background-color: var(--primary-hover);
     }
 
     button.secondary {
-      background: var(--secondary);
+      background-color: var(--secondary);
     }
 
     button.secondary:hover {
-      background: var(--secondary-hover);
+      background-color: var(--secondary-hover);
     }
 
     #progress {
       font-size: 0.95rem;
-      margin-bottom: 0.5rem;
-      color: #555;
+      margin-top: 1rem;
     }
 
     .output {
       display: none;
-      background: white;
-      border-radius: 6px;
+      background-color: white;
       padding: 1rem;
-      margin-top: 0.5rem;
+      border-radius: 6px;
       border: 1px solid #ccc;
+      margin-top: 1rem;
       font-family: monospace;
       white-space: pre-wrap;
     }
 
-    .output.success { border-left: 5px solid var(--success); }
-    .output.error   { border-left: 5px solid var(--error); }
-
-    .file-status {
-      margin-bottom: 0.25rem;
+    .output.success {
+      border-left: 5px solid var(--success);
     }
 
-    .file-status.success { color: var(--success); }
-    .file-status.error   { color: var(--error); }
+    .output.error {
+      border-left: 5px solid var(--error);
+    }
+
+    .file-status {
+      margin-bottom: 0.3rem;
+    }
+
+    .file-status.success {
+      color: var(--success);
+    }
+
+    .file-status.error {
+      color: var(--error);
+    }
   </style>
 </head>
 <body>
@@ -133,17 +146,17 @@
 
   <div class="form-group">
     <label for="tenantId">Tenant ID:</label>
-    <input type="text" id="tenantId" placeholder="e.g. 25021984">
+    <input type="text" id="tenantId" placeholder="e.g. 25021984" />
   </div>
 
   <div class="form-group">
     <label for="tenantKey">Tenant Key:</label>
-    <input type="text" id="tenantKey" placeholder="e.g. HKBLVGAU">
+    <input type="text" id="tenantKey" placeholder="e.g. HKBLVGAU" />
   </div>
 
   <div class="form-group">
     <label for="xmlFile">Upload XML File(s):</label>
-    <input type="file" id="xmlFile" accept=".xml" multiple>
+    <input type="file" id="xmlFile" accept=".xml" multiple />
   </div>
 
   <div id="dropZone">Drag & Drop XML files here</div>
@@ -198,7 +211,6 @@
 
       let processedCount = 0;
       const totalFiles = files.length;
-
       output.style.display = 'block';
 
       files.forEach(file => {
