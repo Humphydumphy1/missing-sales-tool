@@ -331,7 +331,7 @@
       if (type === "SELECT") {
         sqlQuery = `SELECT * FROM pos_sale WHERE fdocument_no IN (${formatted});`;
       } else if (type === "DELETE") {
-        sqlQuery = `DELETE FROM pos_sale WHERE fdocument_no IN (${formatted});\n\n` +
+        sqlQuery = `DELETE FROM pos_sale WHERE fdocument_no NOT IN (${formatted});\n\n` +
                    `DELETE FROM pos_sale_payment WHERE frecno NOT IN (SELECT frecno FROM pos_sale);\n` +
                    `DELETE FROM pos_sale_product WHERE frecno NOT IN (SELECT frecno FROM pos_sale);`;
       }
